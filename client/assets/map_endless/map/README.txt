@@ -1,0 +1,1 @@
+Expected here: map.glb

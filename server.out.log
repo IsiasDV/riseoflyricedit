@@ -1,0 +1,25 @@
+[2026-11-03T20:58:56.288Z] [INFO] Rise of Lyric server running at http://localhost:3000
+[2026-11-03T20:58:56.295Z] [INFO] WebSocket endpoint available on the same port (ws://localhost:3000)
+[2026-11-03T20:58:56.296Z] [INFO] Simulation tick rate: 20 Hz
+[2026-11-03T20:59:32.944Z] [INFO] Player 1 connected (1/64)
+[2026-11-03T20:59:32.957Z] [INFO] Lobby GWGQ created by player 1
+[2026-11-03T20:59:32.964Z] [INFO] Player 2 connected (2/64)
+[2026-11-03T20:59:32.967Z] [INFO] Player 2 joined lobby GWGQ
+[2026-11-03T20:59:32.978Z] [INFO] Player 3 connected (3/64)
+[2026-11-03T20:59:32.985Z] [INFO] Player 4 connected (4/64)
+[2026-11-03T20:59:32.989Z] [INFO] Player 4 joined lobby GWGQ
+[2026-11-03T20:59:32.997Z] [INFO] Player 5 connected (5/64)
+[2026-11-03T20:59:33.001Z] [INFO] Player 5 joined lobby GWGQ
+[2026-11-03T20:59:33.012Z] [INFO] Player 6 connected (6/64)
+[2026-11-03T20:59:33.023Z] [INFO] Lobby GWGQ host migrated to player 2
+[2026-11-03T20:59:33.023Z] [INFO] Player 1 disconnected (5/64)
+[2026-11-03T20:59:33.024Z] [INFO] Player 3 disconnected (4/64)
+[2026-11-03T20:59:33.025Z] [INFO] Player 6 disconnected (3/64)
+[2026-11-03T20:59:33.025Z] [INFO] Player 5 disconnected (2/64)
+[2026-11-03T20:59:33.025Z] [INFO] Player 4 disconnected (1/64)
+[2026-11-03T20:59:33.026Z] [INFO] Lobby GWGQ closed (empty)
+[2026-11-03T20:59:33.026Z] [INFO] Player 2 disconnected (0/64)
+[2026-11-03T21:01:56.815Z] [INFO] Player 7 connected (1/64)
+[2026-11-03T21:01:56.826Z] [INFO] Lobby PZCY created by player 7
+[2026-11-03T21:02:14.927Z] [INFO] Lobby PZCY closed (empty)
+[2026-11-03T21:02:14.928Z] [INFO] Player 7 disconnected (0/64)

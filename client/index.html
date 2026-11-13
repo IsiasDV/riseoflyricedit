@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rise of Lyric</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/match.css" />
+  <link rel="stylesheet" href="css/hud.css" />
+</head>
+<body>
+  <canvas id="game-canvas"></canvas>
+
+  <div id="loading-screen">
+    <div id="loading-title">Rise of Lyric</div>
+    <div id="loading-status">Loading...</div>
+  </div>
+
+  <div id="menu-root">
+    <canvas id="menu-bg"></canvas>
+    <canvas id="menu-fade"></canvas>
+    <div id="intro">
+      <div id="intro-main">X Initiative</div>
+      <div id="intro-sub">Challenge Everything</div>
+    </div>
+    <div id="title-screen">
+      <h1 id="game-title">RISE OF LYRIC</h1>
+      <ul id="menu-list"></ul>
+    </div>
+  </div>
+
+  <div id="hud">
+    <div id="debug-overlay" class="ui-hidden">
+      <div>FPS: <span id="stat-fps">0</span></div>
+      <div>Ping: <span id="stat-ping">--</span> ms</div>
+      <div>Pos: <span id="stat-pos">--</span></div>
+      <div>Players: <span id="stat-players">0</span></div>
+      <div>Status: <span id="stat-status">connecting</span></div>
+    </div>
+  </div>
+
+  <div id="game-hud" class="ui-hidden">
+    <div id="hud-vignette"></div>
+    <div id="hud-health">
+      <div id="hud-health-bar"><div id="hud-health-trail"></div><div id="hud-health-fill"></div></div>
+      <div id="hud-char"></div>
+      <div id="hud-perk"></div>
+    </div>
+    <div id="hud-ammo-box">
+      <div id="hud-ammo-num"></div>
+      <div id="hud-weapon"></div>
+    </div>
+    <div id="crosshair" class="ui-hidden"></div>
+    <div id="down-banner" class="ui-hidden">BLEEDING OUT <span id="down-time">30</span><div id="down-self" class="ui-hidden">PRESS F / X TO REVIVE YOURSELF</div></div>
+    <div id="revive-bar" class="ui-hidden"><div id="revive-label">REVIVING</div><div id="revive-track"><div id="revive-fill"></div></div></div>
+    <div id="interact-prompt" class="ui-hidden"></div>
+    <div id="teleport-fx" class="ui-hidden"><div class="tp-swirl"></div><div class="tp-ring"></div></div>
+    <div id="points-hud"></div>
+    <div id="hud-round"><div id="hud-round-label">ROUND</div><div id="hud-round-num">1</div><div id="hud-left"></div></div>
+    <div id="powerup-hud" class="ui-hidden"><div id="pu-buff"></div><div id="pu-lyric"></div></div>
+    <div id="powerup-banner" class="ui-hidden"></div>
+    <div id="round-banner" class="ui-hidden"><div id="rb-title"></div><div id="rb-sub"></div></div>
+  </div>
+
+  <div id="game-chat" class="ui-hidden">
+    <div id="game-chat-log"></div>
+    <input id="game-chat-input" maxlength="200" autocomplete="off" spellcheck="false" placeholder="Message (Enter to send, Esc to cancel)" />
+  </div>
+
+  <div id="lobby-root" class="ui-hidden">
+    <canvas id="lobby-bg"></canvas>
+    <div id="lobby-bg-img"></div>
+    <div id="lobby-menu" class="lobby-panel">
+      <div id="lobby-mode"></div>
+      <div id="lobby-room-code" class="ui-hidden"></div>
+      <ul id="lobby-menu-list"></ul>
+      <div id="lobby-leader" class="ui-hidden">You are Party Leader</div>
+    </div>
+
+    <div id="lobby-map-info">
+      <div id="lobby-map-banner"></div>
+      <div id="lobby-map-name"></div>
+    </div>
+
+    <div id="lobby-right">
+      <div id="lobby-players" class="lobby-panel">
+        <h3 id="lobby-players-title">PLAYERS</h3>
+        <div id="lobby-ready-status" class="ui-hidden"></div>
+        <ul id="lobby-player-list"></ul>
+      </div>
+      <div id="lobby-chat" class="lobby-panel ui-hidden">
+        <div id="lobby-chat-log"></div>
+        <input id="lobby-chat-input" maxlength="200" placeholder="Press Enter to chat..." />
+      </div>
+      <div id="lobby-settings-btn" class="lobby-panel">SETTINGS</div>
+    </div>
+  </div>
+
+  <div id="lobby-popup-overlay" class="ui-hidden">
+    <div id="lobby-popup" class="modal-box">
+      <h3 id="lobby-popup-name"></h3>
+      <div id="lobby-popup-rename" class="ui-hidden">
+        <input id="lobby-popup-name-input" maxlength="24" />
+        <button id="lobby-popup-save" class="modal-btn">SAVE</button>
+      </div>
+      <ul id="lobby-popup-stats"></ul>
+      <button id="lobby-popup-close" class="modal-btn">CLOSE</button>
+    </div>
+  </div>
+
+  <div id="lobby-settings-overlay" class="ui-hidden">
+    <div class="modal-box">
+      <h3>SETTINGS</h3>
+      <ul id="lobby-settings-list"></ul>
+      <button id="lobby-settings-close" class="modal-btn">CLOSE</button>
+    </div>
+  </div>
+
+  <div id="lobby-maps-overlay" class="ui-hidden">
+    <div class="modal-box maps-box">
+      <h3>MAPS</h3>
+      <div class="maps-body">
+        <ul id="lobby-maps-list"></ul>
+        <div id="lobby-maps-preview">
+          <div id="lobby-maps-title"></div>
+          <div id="lobby-maps-banner"></div>
+          <div id="lobby-maps-desc"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="lobby-chars-overlay" class="ui-hidden">
+    <div class="modal-box">
+      <h3>CHARACTER</h3>
+      <ul id="lobby-chars-list"></ul>
+      <button id="lobby-chars-close" class="modal-btn">CLOSE</button>
+    </div>
+  </div>
+
+  <div id="lobby-perks-overlay" class="ui-hidden">
+    <div class="modal-box perks-box">
+      <h3>PERMA-PERK</h3>
+      <div class="perks-body">
+        <ul id="lobby-perks-list"></ul>
+        <div id="lobby-perks-preview">
+          <div id="lobby-perks-swatch"></div>
+          <div id="lobby-perks-title"></div>
+          <div id="lobby-perks-desc"></div>
+          <div id="lobby-perks-note"></div>
+        </div>
+      </div>
+      <button id="lobby-perks-close" class="modal-btn">CLOSE</button>
+    </div>
+  </div>
+
+  <div id="prompt-modal" class="ui-hidden">
+    <div class="modal-box">
+      <h3 id="prompt-title"></h3>
+      <input id="prompt-input" maxlength="24" />
+      <div id="prompt-error"></div>
+      <div id="prompt-actions">
+        <button id="prompt-cancel" class="modal-btn">CANCEL</button>
+        <button id="prompt-confirm" class="modal-btn">CONTINUE</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="pause-root" class="ui-hidden">
+    <ul id="pause-list"></ul>
+  </div>
+
+  <div id="match-countdown" class="ui-hidden">
+    <div id="match-countdown-caption">MATCH STARTING</div>
+    <div id="match-countdown-number"></div>
+    <div id="match-countdown-map"></div>
+  </div>
+
+  <div id="map-loading" class="ui-hidden">
+    <div id="map-loading-title"></div>
+    <div id="map-loading-bar"><div id="map-loading-bar-fill"></div></div>
+  </div>
+
+  <div id="map-intro" class="ui-hidden">
+    <video id="map-intro-video" muted playsinline></video>
+    <div id="map-intro-hint"></div>
+  </div>
+
+  <div id="screen-fade" class="ui-hidden"></div>
+
+  <div id="spectate-label" class="ui-hidden"></div>
+  <div id="game-over" class="ui-hidden">
+    <div id="go-title">GAME OVER</div>
+    <div id="go-round"></div>
+    <table id="go-table"><thead><tr><th>PLAYER</th><th>CHARACTER</th><th>DEFEATED</th><th>DOWNS</th><th>REVIVES</th><th>STATUS</th></tr></thead><tbody id="go-body"></tbody></table>
+  </div>
+
+  <div id="scoreboard" class="ui-hidden">
+    <div id="scoreboard-title"></div>
+    <ul id="scoreboard-list"></ul>
+  </div>
+
+  <div id="dev-console" class="ui-hidden">
+    <input id="dev-console-input" autocomplete="off" spellcheck="false" placeholder="command (ESC to close)" />
+    <div id="dev-console-out"></div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

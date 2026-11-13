@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<architecture game="Rise of Lyric" version="0.1.0" status="foundation-only">
+
+  <summary>
+    Rise of Lyric is a lightweight HTML5 3D multiplayer game. This document describes
+    the runtime foundation that has been built: server, client bootstrap, networking
+    protocol, rendering pipeline, and project layout. No gameplay rules, art, or visual
+    design have been implemented yet - this is boilerplate/plumbing only.
+  </summary>
+
+  <runtime>
+    <requirement name="Node.js" version=">=18.0.0" />
+    <requirement name="Browser" detail="any modern browser with WebGL2 and WebSocket support" />
+    <dependencies npm="none">
+      Zero external npm dependencies on the server. The client vendors Three.js as a
+      static local file (no CDN, no bundler, no build step required).
+    </dependencies>
+    <howToRun>
+      <step>cd "rise of lyric"</step>
+      <step>node server.js</step>
+      <step>Open http://localhost:3000 in a browser</step>
+    </howToRun>
+    <envVars>
+      <var name="PORT" default="3000" />
+      <var name="HOST" default="0.0.0.0" />
+      <var name="DEBUG" default="unset" detail="set to any value to enable debug logs" />
+    </envVars>
+  </runtime>
+
+  <projectStructure>
+    <file path="server.js" status="done">
+      Process entry point. Boots the HTTP server, WebSocket server, and GameServer;
+      wires graceful shutdown on SIGINT/SIGTERM.
+    </file>
+    <file path="package.json" status="done">
+      type: module (ESM). No dependencies. "start" script runs node server.js.
+    </file>
+
+    <directory path="server/" status="done">
+      <file path="config.js">Central runtime constants: port, host, tick rate, max players, heartbeat timings.</file>
+      <file path="logger.js">Minimal timestamped console logger (info/warn/error/debug).</file>
+      <file path="http-server.js">Dependency-free static file server for the client/ directory. MIME type map, path-traversal protection, 404/500 handling.</file>
+      <file path="websocket.js">Hand-rolled RFC 6455 WebSocket server implementation (handshake via Sec-WebSocket-Accept, frame encode/decode, masking, text/ping/pong/close opcodes). No external ws library.</file>
+      <file path="protocol.js">Shared message-type string constants for the client/server JSON protocol.</file>
+      <file path="game-server.js">Connection manager: player registry, fixed-tick loop (setInterval at TICK_RATE_HZ), snapshot broadcasting, join/leave events, heartbeat ping loop. No gameplay/physics logic - players are static placeholders at (0,0,0).</file>
+    </directory>
+    <directory path="client/" status="done">
+      <file path="index.html">Document shell: canvas, loading screen, debug HUD overlay. Title set to "Rise of Lyric".</file>
+      <file path="css/main.css">Minimal CSS reset and fullscreen canvas layout only. No visual design/theming.</file>
+
+      <directory path="js/core/">
+        <file path="config.js">Client runtime constants (WS URL derivation, reconnect timing, camera FOV/near/far).</file>
+        <file path="events.js">Tiny synchronous pub/sub EventBus used to decouple engine modules.</file>
+        <file path="loop.js">requestAnimationFrame game loop with delta-time clamping and rolling FPS calculation.</file>
+      </directory>
+
+      <directory path="js/render/">
+        <file path="renderer.js">THREE.WebGLRenderer creation and window-resize handling.</file>
+        <file path="camera.js">THREE.PerspectiveCamera factory using core/config.js values.</file>
+        <file path="scene.js">Base scene: ambient + directional lights, ground plane, one placeholder rotating test cube, and a factory for remote-player placeholder meshes.</file>
+      </directory>
+
+      <directory path="js/input/">
+        <file path="input.js">Keyboard key-state tracking, pointer-lock request on canvas click, raw mouse-delta accumulation. Records input only - no movement logic applied.</file>
+      </directory>
+
+      <directory path="js/net/">
+        <file path="network.js">Browser WebSocket client wrapper: connect/reconnect with exponential backoff, JSON message parsing, dispatches events (net:connected, net:welcome, net:snapshot, net:playerJoin, net:playerLeave, net:disconnected) via the EventBus.</file>
+      </directory>
+
+      <directory path="js/state/">
+        <file path="state.js">WorldState: holds latest snapshot of remote players (Map keyed by id) and the local player's id.</file>
+      </directory>
+
+      <directory path="js/ui/">
+        <file path="ui.js">Loading-screen show/hide and debug overlay stat updates (FPS, ping, player count, connection status).</file>
+      </directory>
+
+      <file path="js/main.js">Bootstrap script. Wires renderer+scene+camera, input, network, world state, UI and the game loop together. Spawns/despawns placeholder boxes for remote players based on snapshots. Rotates a local test cube to prove the render loop is alive.</file>
+
+      <directory path="vendor/" status="done">
+        <file path="three.module.min.js">Three.js r160, vendored locally as an ES module (fetched from the official unpkg build). Imported directly by render/*.js via relative paths - no bundler/build step required.</file>
+      </directory>
+    </directory>
+  </projectStructure>
+
+  <networkProtocol transport="WebSocket" format="JSON" tickRate="20Hz">
+    <clientToServer>
+      <message type="hello">Sent once after the socket opens. Fields: name.</message>
+      <message type="input">Reserved for per-tick input state (keys, look angles). Currently stored but unused by simulation.</message>
+      <message type="pong">Heartbeat reply to a server ping.</message>
+    </clientToServer>
+    <serverToClient>
+      <message type="welcome">Sent immediately on connect. Fields: id (assigned player id), tickRate.</message>
+      <message type="snapshot">Broadcast every tick. Fields: tick, players[] (id, name, x, y, z, ry).</message>
+      <message type="playerJoin">Broadcast when a player connects. Fields: id, name.</message>
+      <message type="playerLeave">Broadcast when a player disconnects. Fields: id.</message>
+      <message type="ping">Heartbeat request, sent every HEARTBEAT_INTERVAL_MS.</message>
+    </serverToClient>
+  </networkProtocol>
+
+  <implementedFeatures>
+    <feature status="done">Dependency-free Node HTTP static file server with MIME types and path-traversal protection</feature>
+    <feature status="done">Dependency-free hand-rolled WebSocket server (handshake + framing)</feature>
+    <feature status="done">Fixed-tick (20Hz) server game loop with player connection registry</feature>
+    <feature status="done">JSON-based client/server protocol with join/leave/snapshot/heartbeat messages</feature>
+    <feature status="done">Browser client bootstrap with Three.js scene, camera, renderer, resize handling</feature>
+    <feature status="done">Client-side WebSocket wrapper with auto-reconnect/backoff</feature>
+    <feature status="done">Input manager (keyboard state + pointer-lock mouse deltas), not yet applied to gameplay</feature>
+    <feature status="done">World state registry synced from server snapshots; remote players rendered as placeholder boxes</feature>
+    <feature status="done">Minimal debug HUD (FPS, ping placeholder, player count, connection status) and loading screen</feature>
+    <feature status="done">Graceful server shutdown on SIGINT/SIGTERM</feature>
+  </implementedFeatures>
+
+  <notYetImplemented>
+    <item>Gameplay rules, combat, abilities, win/lose conditions</item>
+    <item>Player movement/physics, collision detection</item>
+    <item>Visual design, art direction, models, textures, animations, sound</item>
+    <item>Authentication, accounts, persistence/database</item>
+    <item>Matchmaking, rooms/lobbies beyond a single shared world</item>
+    <item>Real round-trip ping measurement (HUD field exists but is not wired to a timer yet)</item>
+    <item>Server-side anti-cheat / input validation</item>
+  </notYetImplemented>
+
+  <verification date="2026-11-03">
+    <test name="HTTP static serving">Verified / (index.html), /js/main.js, and /vendor/three.module.min.js all return HTTP 200.</test>
+    <test name="WebSocket handshake">Verified raw TCP client completes RFC 6455 handshake (101 Switching Protocols) against server/websocket.js.</test>
+    <test name="Protocol round-trip">Verified client receives "welcome" on connect and continuous 20Hz "snapshot" messages reflecting the connected test player.</test>
+  </verification>
+</architecture>

@@ -1,0 +1,12 @@
+# Map Editor Project Rules
+
+- The goal is a functional map creator/editor built on this project's EXISTING gameplay systems. Never rewrite or fork gameplay logic; reuse existing spawn/creation/collision/physics code paths.
+- Existing levels must play exactly as before after any change.
+- Match the project's existing language, style, naming, and file structure.
+- Do not add dependencies without asking me first.
+- No stubs, placeholders, or fake features. If something can't be finished, say so explicitly.
+- Never guess at how the code works. Open the file and read it. If you are unsure, say so.
+- Work in small steps. After each step, build/run/test if you can, and report what changed and how you verified it.
+- If you cannot run or visually test the game, verify by compiling/linting/running tests, and tell me exactly what I need to check by hand.
+- Keep EDITOR_PROGRESS.md updated at the end of every task: what is done, what is in progress, what is next, known issues.
+- When your assigned task is finished, use attempt_completion and STOP. Never start the next phase on your own.

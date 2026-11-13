@@ -1,0 +1,118 @@
+# Rise of Lyric
+
+Lightweight HTML5 3D multiplayer game - runtime foundation only (no gameplay, no visual design yet).
+
+## Run the server
+
+```
+node server.js
+```
+
+Then open `http://localhost:3000` in a browser. No `npm install` is required -
+the server has zero external dependencies and the client vendors Three.js locally.
+
+Optional environment variables:
+- `PORT` (default `3000`)
+- `HOST` (default `0.0.0.0`)
+- `DEBUG=1` to enable debug-level server logs
+
+## What's here
+
+See [ARCHITECTURE.xml](./ARCHITECTURE.xml) for a full inventory of what has been implemented.
+
+In short:
+- A dependency-free Node.js HTTP + WebSocket server (`server.js`, `server/`)
+- A fixed-tick (20 Hz) game loop with a player connection/snapshot broadcast scaffold
+- A browser client (`client/`) using vanilla JS modules + Three.js (vendored, no bundler)
+- A render loop, input manager, network client with auto-reconnect, and a minimal debug HUD
+- Everything needed to see a rotating placeholder cube and connected players as boxes
+
+## What's NOT here yet
+
+- Gameplay rules, combat, movement physics, collisions
+- Assets, models, animations, or any visual design/art direction
+- Persistence, authentication, matchmaking
+
+## Match flow
+
+Singleplayer: START GAME. Multiplayer: every player (host included) uses READY UP; once ≥50% of the
+lobby is ready the countdown starts automatically, and nobody can join during countdown/loading/in-game.
+Then: 5s countdown → loading screen (waits for every player) → black → fade into the map.
+Multiplayer is server-driven (`countdown` / `loadMap` / `matchBegin` / `matchAborted`, lobby `phase`);
+singleplayer runs the same steps locally. Orchestrated by `client/js/game/game-session.js`.
+Esc in a match opens the pause menu (Resume / Options / Exit).
+
+## Characters
+
+Each match every player is randomly assigned Void, Boss or Dave the Manager (server-side in multiplayer via `loadMap.characters`,
+local in singleplayer; duplicates allowed). Definitions are in `client/js/game/characters.js`, assets in
+`client/assets/char_<id>/{model,sfx}`. Other players see your character's model; you hear a random
+start voice line (Dave also has random reload and down lines) when the match begins. Models are auto-scaled to avatar height; if one fails
+to load the avatar falls back to a colored cube. If a model faces backwards, tweak its `yawOffset`.
+
+## Adding a map
+
+CHANGE MAP opens a MAPS popup (list + banner/description preview; mouse, arrows/Enter, or D-pad/A).
+Map art lives in `client/assets/map/<id>/{banner,loading}` (`loading.m4a` loops on the loading screen and stops once the match starts).
+
+1. Create `client/js/maps/<map>.js` (copy `night-of-the-living-void.js`): metadata, `assets` manifest, `createLevel()`.
+2. Register it in `client/js/maps/maps.js` and add its id/name to `server/maps.js`.
+3. Put art in `client/assets/maps/<id>/` (`banner.png`, `loading.png`). Missing files are tolerated.
+
+## Controls
+
+| Action | Keyboard / mouse | Xbox controller |
+|---|---|---|
+| Move | WASD | Left stick |
+| Look | Mouse (click canvas to capture) | Right stick |
+| Run | Hold Shift | Click left stick (toggle) |
+| Crouch (toggle) | C | B |
+| Jump | Space | A |
+| Pause | Esc | Start |
+
+No running while crouched. Camera sensitivity (1–10, mouse and stick), controller vibration and a motion blur toggle (off by default) are in Settings. In multiplayer each client
+sends its position (`playerState`) and the server relays it per lobby (`matchState`); players share
+one spawn and can overlap.
+
+## Audio / loading
+Main-menu + lobby music (`assets/menu_bgm/bgm.m4a`) loops until the loading screen starts and resumes when you return to the menu/lobby.
+Loading screens last at least 5s (hardcoded floor in `game-session.js`); the map's loading audio is preloaded so it starts instantly.
+Multiplayer characters are assigned as an even split across Void/Boss/Dave (random characters get the extra slots).
+
+## Enemies
+
+- **Beh** (`enemy_beh`): stationary; tracks, laughs, then hits (a held gun is knocked away first, otherwise you go down).
+- **Meh** (`enemy_meh`): from round 5 each spawn slot has a 10% chance to be a Meh. It spawns at the normal enemy spawn points,
+  chases the nearest living player at 6 m/s (path finding around walls in `client/js/game/nav.js`, re-routing when stuck) and
+  downs whoever it touches, then goes after the next closest player. It uses the same model at 80% size; shooting or slapping it
+  plays its death sound and the `Moving` animation. Debug console: `meh` spawns one in front of you.
+
+## Announcer
+
+A global announcer voice (`client/assets/announcer`) is heard by every player: `AnnounceDead` on game over, `AnnounceLyric` when anyone takes Rise of Lyric, `AnnounceNuke` when anyone takes a Nuke.
+
+## Ungaland status
+
+Live (assets in, night sky, dynamic fog/moon, giant Beh animation). Still provisional, to refine after playtesting:
+1. Player `spawn` in `client/js/maps/map-data.js`.
+2. Pickup spawns: `GUN_SPAWNS` / `AMMO_SPAWNS` in `client/js/maps/ungaland.js`, mirrored in `server/maps.js`.
+3. To block a map again, set `ready: false` on its `MAP_DATA` entry.
+
+## Choco-rocklate Gladiator Arena
+
+Live with its loading assets (`client/assets/map/choco/`, `client/assets/map_choco/map/map.glb`). Spawn, enemy areas, pickups and theme in `map-data.js` / the map file are still placeholders.
+Loading sequence (`intro` + `minLoadingMs` on the map definition, `client/js/ui/map-intro.js`): black while `loading.opus` starts -> muted `intro.mp4` fades in once fully buffered -> 2 s black -> fade into `loading.jpg` with the bar (min 7 s) -> game. ENTER skips the intro (singleplayer immediately; multiplayer needs every player to press it, see `INTRO_MAPS` in `server/maps.js`). If the video cannot load/play the intro is skipped.
+
+## Endless Shot (scaffold)
+
+Registered (lobby, server, loading flow) but `ready: false`, so matches cannot start on it. Go-live checklist:
+1. Add `client/assets/map/endless/{banner/banner.jpg, loading/loading.jpg, loading/loading.opus}` (or change the paths in `client/js/maps/endless-shot.js`) and `client/assets/map_endless/map/map.glb`.
+2. In `client/js/maps/map-data.js` set `scale`, `noCollide`, `spawn`, `enemyAreas`, and optionally `enemyAreasOpen`, `barrier`, `powerupMachine`, `teleporters`, `colorMachine`, `lyricMachine` (all handled by `maps/map-props.js` + the server), then remove `ready: false`.
+3. Fill `GUN_SPAWNS` / `AMMO_SPAWNS` in the map file and mirror them in `server/maps.js`.
+4. Optional definition fields: `intro` + `minLoadingMs` (cutscene), `bgmInGame`, `greeting`, `taunts` (also add the id to `TAUNT_MAPS`), `secret` (also add to `SECRET_MAPS`; `INTRO_MAPS` for intro maps). Sky/fog/lighting are placeholders.
+
+## Choco-rocklate sky + secret
+The sky starts as a cold white night and blends into the blood-moon vortex over `SKY_MS` (45 s) after the match starts (`level.startSkyTransition()`); the menu fly-through shows the final sky. The Konami code plays `assets/map_choco/secret/secret.opus` once per match.
+
+## Fearvelations (scaffold)
+Same as Endless Shot (`ready: false`, COMING SOON): assets in `client/assets/map/fearvelations/` and `client/assets/map_fearvelations/map/map.glb`, values in the `fearvelations` entry of `map-data.js`, map file `client/js/maps/fearvelations.js`, spawns mirrored in `server/maps.js`. Follow the Endless Shot checklist above.

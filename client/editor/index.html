@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rise of Lyric - Map Editor</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="editor.css" />
+</head>
+<body>
+  <div id="editor-root">
+    <header id="editor-header">
+      <h1>Map Editor</h1>
+      <div id="editor-map-select">
+        <label for="editor-map">Map:</label>
+        <select id="editor-map"></select>
+      </div>
+      <div id="editor-status">Ready</div>
+    </header>
+
+    <div id="editor-container">
+      <canvas id="editor-canvas"></canvas>
+
+      <aside id="editor-sidebar">
+        <section id="editor-palette">
+          <h2>Palette</h2>
+          <div id="editor-palette-buttons"></div>
+        </section>
+
+        <section id="editor-properties" class="hidden">
+          <h2>Properties</h2>
+          <div id="editor-property-fields"></div>
+          <button id="editor-delete-selected">Delete Selected</button>
+        </section>
+
+        <section id="editor-actions">
+          <button id="editor-save">Download map-overrides.js</button>
+          <button id="editor-testplay">Test Play</button>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <script type="module" src="editor.js"></script>
+</body>
+</html>
